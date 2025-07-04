@@ -3,1430 +3,765 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>信令管理系统</title>
+    <title>接口检测系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-        }
-
-        :root {
-            --primary: #2c6bed;
-            --primary-dark: #1a56c7;
-            --secondary: #f8f9fa;
-            --border: #dee2e6;
-            --text: #333;
-            --text-light: #6c757d;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --flow-chart-bg: #f0f7ff;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
-            color: var(--text);
-            min-height: 100vh;
+            background: url("/image/v2_sy33ic.png") no-repeat center center fixed;
+            background-size: cover;
             display: flex;
-            flex-direction: column;
-            line-height: 1.6;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            animation: gradientBG 15s ease infinite;
         }
 
-        /* 顶部导航栏 */
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 0 20px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.6s ease-in-out;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px) rotateX(10deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0); }
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            transform: translateZ(20px);
         }
 
-        .logo i {
+        .logo-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4a90e2, #6a5acd);
+            border-radius: 50%;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(74, 144, 226, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); }
+        }
+
+        .logo-icon i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .logo h2 {
+            margin-top: 15px;
+            color: #333;
+            font-weight: 700;
             font-size: 28px;
-        }
-
-        .logo h1 {
-            font-size: 22px;
-            font-weight: 700;
             letter-spacing: 0.5px;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-info .notification {
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .notification:hover {
-            transform: translateY(-2px);
-        }
-
-        .notification .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 30px;
-            transition: background 0.3s;
-        }
-
-        .user-profile:hover {
-            background: rgba(255,255,255,0.15);
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #3a7dff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .server-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            padding: 5px 10px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 15px;
-        }
-
-        .server-ip {
+        .logo p {
+            color: #666;
             font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            margin-top: 5px;
         }
 
-        .server-status {
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #4caf50;
-            margin-right: 5px;
-            box-shadow: 0 0 8px #4caf50;
-        }
-
-        /* 主内容区 */
-        .container {
-            display: flex;
-            flex: 1;
-            max-width: 1800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* 侧边栏 */
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(to bottom, #2a6bdb, #1a56c7);
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            color: white;
-        }
-
-        .sidebar.collapsed {
-            width: 70px;
-        }
-
-        .toggle-sidebar {
-            padding: 20px 15px;
-            text-align: right;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .toggle-sidebar i {
-            color: white;
-            font-size: 20px;
-        }
-
-        .menu {
-            flex: 1;
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            padding: 14px 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: rgba(255,255,255,0.85);
-            text-decoration: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu-item:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.1);
-            transition: all 0.4s;
-        }
-
-        .menu-item:hover:before {
-            left: 0;
-        }
-
-        .menu-item:hover {
-            color: white;
-        }
-
-        .menu-item.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left: 4px solid white;
-        }
-
-        .menu-item i {
-            font-size: 20px;
-            min-width: 24px;
-            text-align: center;
-            z-index: 1;
-        }
-
-        .menu-item span {
-            flex: 1;
-            z-index: 1;
-            font-weight: 500;
-        }
-
-        .sidebar.collapsed .menu-item span {
-            display: none;
-        }
-
-        .footer {
-            padding: 20px 15px;
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255,255,255,0.6);
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* 内容区域 */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .breadcrumb {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .breadcrumb i {
-            color: var(--primary);
-        }
-
-        .date-display {
-            color: var(--text-light);
-            font-size: 15px;
-            background: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-        }
-
-        /* 查询表单 */
-        .query-form {
-            background-color: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(44, 107, 237, 0.1);
-        }
-
-        .form-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--primary);
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .form-title i {
-            font-size: 20px;
-        }
-
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            flex: 1;
-            min-width: 220px;
+        .input-group {
+            margin-bottom: 22px;
             position: relative;
         }
 
-        .form-group label {
+        .input-group label {
             display: block;
             margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--text-light);
+            color: #555;
             font-weight: 500;
+            font-size: 14px;
         }
 
-        .form-group input {
+        .input-group input {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border);
+            padding: 14px 15px 14px 45px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 16px;
             transition: all 0.3s;
-            background: #fafcff;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .form-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(44, 107, 237, 0.15);
+        .input-group input:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
             outline: none;
         }
 
-        .form-group input[type="datetime-local"] {
-            color: var(--text-light);
-        }
-
-        .form-group input[type="datetime-local"]:not(:focus):placeholder-shown {
-            color: var(--text-light);
-        }
-
-        .form-group input[type="datetime-local"]:focus,
-        .form-group input[type="datetime-local"]:not(:placeholder-shown) {
-            color: var(--text);
-        }
-
-        .time-range-hint {
-            font-size: 13px;
-            color: var(--text-light);
-            margin-top: 6px;
-            font-style: italic;
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 10px rgba(44, 107, 237, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(44, 107, 237, 0.4);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .btn-outline:hover {
-            background-color: #f8f9fa;
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* 数据表格 */
-        .data-table {
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(44, 107, 237, 0.1);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .table-header {
-            padding: 20px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .table-title {
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 40px;
+            color: #777;
             font-size: 18px;
-            font-weight: 700;
         }
 
-        .table-actions {
-            display: flex;
-            gap: 12px;
+        .input-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            flex: 1;
+        .input-group.error input {
+            border-color: #e74c3c;
         }
 
-        thead {
-            position: sticky;
-            top: 0;
-            background: #f8fafd;
-            z-index: 10;
+        .input-group.error .input-error {
+            display: block;
+            animation: shake 0.5s;
         }
 
-        th, td {
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
         }
 
-        th {
-            font-weight: 700;
-            color: var(--text-light);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tbody tr {
-            transition: background 0.2s;
-        }
-
-        tbody tr:hover {
-            background-color: #f9fbfe;
-        }
-
-        /* 按钮样式优化 */
-        .view-btn {
-            padding: 6px 12px;
-            background: linear-gradient(135deg, #17a2b8, #138496);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
-            height: 30px;
-            min-width: 90px;
-        }
-
-        .view-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
-            background: linear-gradient(135deg, #138496, #117a8b);
-        }
-
-        .download-btn {
-            padding: 6px 12px;
-            background: linear-gradient(135deg, #28a745, #218838);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
-            height: 30px;
-            min-width: 90px;
-        }
-
-        .download-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
-            background: linear-gradient(135deg, #218838, #1e7e34);
-        }
-
-        /* 分页 */
-        .pagination {
-            padding: 20px 25px;
+        .remember-forgot {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid var(--border);
-        }
-
-        .page-info {
+            margin-bottom: 25px;
             font-size: 14px;
-            color: var(--text-light);
         }
 
-        .page-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .page-btn {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 10px;
+        .remember-me {
             display: flex;
             align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background-color: white;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
         }
 
-        .page-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+        .remember-me input {
+            margin-right: 8px;
+            accent-color: #4a90e2;
         }
 
-        .page-btn.active {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 2px 6px rgba(44, 107, 237, 0.3);
+        .forgot-password a {
+            color: #4a90e2;
+            text-decoration: none;
+            transition: all 0.2s;
         }
 
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .forgot-password a:hover {
+            text-decoration: underline;
+            color: #3a7bc8;
         }
 
-        /* 响应式设计 */
-        @media (max-width: 1200px) {
-            .stats {
-                flex-wrap: wrap;
-            }
-            .stat-card {
-                min-width: calc(50% - 12px);
-            }
-        }
-
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 70px;
-            }
-
-            .sidebar .menu-item span {
-                display: none;
-            }
-
-            .stats {
-                flex-direction: column;
-            }
-            .stat-card {
-                min-width: 100%;
-            }
-
-            .server-info {
-                display: none;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .form-group {
-                min-width: 100%;
-            }
-
-            .table-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .pagination {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .page-controls {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .content-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .view-btn, .download-btn {
-                padding: 5px 8px;
-                font-size: 11px;
-                min-width: 80px;
-                height: 28px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .view-btn, .download-btn {
-                min-width: auto;
-                width: 70px;
-            }
-
-            .view-btn span, .download-btn span {
-                display: none;
-            }
-
-            .view-btn i, .download-btn i {
-                font-size: 14px;
-                margin-right: 0;
-            }
-        }
-
-        /* IE浏览器调整 */
-        .ie-browser td:nth-child(2) {
-            padding-left: 10px !important;
-        }
-
-        .ie-browser table {
-            table-layout: fixed;
+        .login-btn {
             width: 100%;
-        }
-
-        .ie-browser th,
-        .ie-browser td {
-            padding: 12px 15px;
-        }
-
-        .ie-browser th:first-child,
-        .ie-browser td:first-child {
-            width: 60px;
-        }
-
-        .ie-browser th:nth-child(2),
-        .ie-browser td:nth-child(2) {
-            width: 120px;
-        }
-
-        .ie-browser .view-btn,
-        .ie-browser .download-btn {
-            margin-left: -5px;
-        }
-
-        /* IE检测类 */
-        .ie-browser .form-group input[type="datetime-local"] {
-            color: var(--text-light) !important;
-        }
-
-        .ie-browser .form-group input[type="datetime-local"]:focus {
-            color: var(--text) !important;
-        }
-
-        /* 复选框样式 */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .checkbox-container input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            padding: 14px;
+            background: linear-gradient(135deg, #4a90e2, #6a5acd);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #3a7bc8, #5a4acd);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(106, 90, 205, 0.4);
+        }
+
+        .register-link {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .register-link a {
+            color: #4a90e2;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 5px;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+            color: #3a7bc8;
         }
 
         /* 弹窗样式 */
         .modal {
             display: none;
             position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: rgba(255, 255, 255, 0.95);
+            margin: 15% auto;
+            padding: 35px 40px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideDown 0.4s;
+            backdrop-filter: blur(12px);
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            color: #aaa;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        /* 自定义弹窗样式 */
+        .custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .alert-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .error-icon {
+            color: #ff6b6b;
+        }
+
+        .success-icon {
+            color: #2ecc71;
+        }
+
+        .alert-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .alert-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .alert-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #4a90e2, #6a5acd);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
+        }
+
+        .alert-btn:hover {
+            background: linear-gradient(135deg, #3a7bc8, #5a4acd);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(106, 90, 205, 0.4);
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .success-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+        }
+
+        .alert-overlay {
+            display: none;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
         }
 
-        .modal-content {
-            background-color: white;
-            border-radius: 12px;
-            width: 400px;
-            max-width: 90%;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            position: relative;
-            animation: modalShow 0.3s ease;
+        /* 预置用户提示 */
+        .preset-users {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #4a90e2;
         }
 
-        @keyframes modalShow {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-header i {
-            font-size: 24px;
-            color: var(--primary);
-            margin-right: 12px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .modal-body {
-            margin-bottom: 25px;
+        .preset-users h3 {
             font-size: 16px;
-            line-height: 1.6;
-            color: var(--text-light);
+            color: #4a90e2;
+            margin-bottom: 12px;
         }
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
+        .preset-users ul {
+            list-style-type: none;
+            padding-left: 10px;
         }
 
-        .modal-actions .btn {
-            min-width: 90px;
+        .preset-users li {
+            margin: 8px 0;
+            color: #555;
+            font-size: 14px;
         }
 
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-light);
-            transition: color 0.3s;
+        .preset-users li i {
+            margin-right: 8px;
+            color: #6a5acd;
         }
 
-        .close-modal:hover {
-            color: var(--danger);
+        /* 条款样式 */
+        .terms-container {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .terms-container h4 {
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+
+        .terms-container p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .login-container, .modal-content, .custom-alert {
+                width: 95%;
+                padding: 30px 20px;
+            }
+
+            .form-title {
+                font-size: 22px;
+            }
+
+            .logo h2 {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .remember-forgot {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
         }
     </style>
 </head>
 <body>
-<!-- 顶部导航栏 -->
-<header class="header">
+<!-- 登录容器 -->
+<div class="login-container">
     <div class="logo">
-        <i class="fas fa-signal"></i>
-        <h1>接口监测系统</h1>
-    </div>
-    <div class="user-info">
-        <div class="notification">
-            <i class="fas fa-bell"></i>
-            <span class="badge">3</span>
+        <div class="logo-icon">
+            <i class="fas fa-lock"></i>
         </div>
-        <div class="server-info">
-            <div class="server-ip" id="serverIp">服务器: 192.168.1.100</div>
-            <div class="server-status">
-                <span class="status-indicator"></span>
-                <span>在线</span>
-            </div>
-        </div>
-        <div class="user-profile">
-            <div class="avatar">AD</div>
-            <span>管理员</span>
-        </div>
-    </div>
-</header>
-
-<div class="container">
-    <!-- 侧边栏 -->
-    <div class="sidebar">
-        <div class="toggle-sidebar">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="menu">
-            <a href="#" class="menu-item">
-                <i class="fas fa-home"></i>
-                <span>首页</span>
-            </a>
-            <a href="#" class="menu-item active">
-                <i class="fas fa-search"></i>
-                <span>信令查询</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>数据统计</span>
-            </a>
-            <div class="menu-item" id="systemManagement">
-                <i class="fas fa-cog"></i>
-                <span>系统管理</span>
-            </div>
-
-            <!-- 系统管理下的二级菜单 -->
-            <div class="submenu" style="padding-left: 30px;">
-                <a href="usermanagement.html" class="menu-item" data-target="userManagementContent">
-                    <i class="fas fa-users"></i>
-                    <span>用户管理</span>
-                </a>
-                <a href="position.html" class="menu-item" data-target="jobManagementContent">
-                    <i class="fas fa-briefcase"></i>
-                    <span>岗位管理</span>
-                </a>
-                <a href="log.html" class="menu-item" data-target="logContent">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>日志管理</span>
-                </a>
-            </div>
-        </div>
-        <div class="footer">
-            <p>© 2025 接口监测系统</p>
-        </div>
+        <h2>接口检测系统</h2>
     </div>
 
-    <!-- 主内容区 -->
-    <div class="main-content">
-        <div class="content-header">
-            <div class="breadcrumb">
-                <i class="fas fa-project-diagram"></i>
-                信令查询
-            </div>
-            <div class="date-display" id="currentDate">2025年6月27日 星期五</div>
-        </div>
-
-        <!-- 查询表单 -->
-        <div class="query-form">
-            <div class="form-title">
-                <i class="fas fa-filter"></i>
-                <span>信令查询条件</span>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-clock"></i> 起始时间</label>
-                    <input type="datetime-local" id="startTime" step="1">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-clock"></i> 结束时间</label>
-                    <input type="datetime-local" id="endTime" step="1">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-mobile-alt"></i> MSSDN</label>
-                    <input type="text" id="mssdn" placeholder="请输入MSSDN">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-sim-card"></i> SUPI</label>
-                    <input type="text" id="imsi" placeholder="请输入SUPI">
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-outline" id="resetBtn">
-                    <i class="fas fa-redo"></i> 重置
-                </button>
-                <button class="btn btn-primary" id="searchBtn">
-                    <i class="fas fa-search"></i> 查询
-                </button>
-            </div>
-        </div>
-
-        <!-- 数据表格 -->
-        <div class="data-table">
-            <div class="table-header">
-                <div class="table-title">信令数据列表</div>
-                <div class="table-actions">
-                    <button class="btn btn-primary" id="exportBtn">
-                        <i class="fas fa-download"></i> 导出数据
-                    </button>
-                </div>
-            </div>
-            <table>
-                <thead>
-                <tr>
-                    <th>
-                        <div class="checkbox-container">
-                            <input type="checkbox" id="selectAll">
-                        </div>
-                    </th>
-                    <th>序号</th>
-                    <th>startTime</th>
-                    <th>endTime</th>
-                    <th>SUPI</th>
-                    <th>maisdn</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody">
-                <!-- 表格数据将通过JS动态生成 -->
-                </tbody>
-            </table>
-
-            <!-- 分页 -->
-            <div class="pagination">
-                <div class="page-info" id="pageInfo">共0条记录</div>
-                <div class="page-controls">
-                    <button class="page-btn" id="prevPage">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <!-- 页码按钮将通过JS动态生成 -->
-                    <button class="page-btn" id="nextPage">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div class="input-group">
+        <label for="username">用户名</label>
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" id="username" placeholder="请输入用户名">
     </div>
+
+    <div class="input-group">
+        <label for="password">密码</label>
+        <i class="fas fa-key input-icon"></i>
+        <input type="password" id="password" placeholder="请输入密码">
+    </div>
+
+    <div class="remember-forgot">
+        <div class="remember-me">
+            <input type="checkbox" id="remember">
+            <label for="remember">记住我</label>
+        </div>
+<!--        <div class="forgot-password">-->
+<!--            <a href="#">忘记密码?</a>-->
+<!--        </div>-->
+    </div>
+
+    <button class="login-btn" id="loginBtn">登 录</button>
+
+    <div class="register-link">
+        还没有账户? <a id="showRegister">立即注册</a>
+    </div>
+
+<!--    <div class="preset-users">-->
+<!--        <h3>预置用户</h3>-->
+<!--        <ul>-->
+<!--            <li><i class="fas fa-user-circle"></i>用户名: admin</li>-->
+<!--            <li><i class="fas fa-key"></i>密码: 123456</li>-->
+<!--        </ul>-->
+<!--    </div>-->
 </div>
 
-<!-- 弹窗 -->
-<div class="modal" id="downloadModal">
+<!-- 注册模态框 -->
+<div id="registerModal" class="modal">
     <div class="modal-content">
-        <button class="close-modal">&times;</button>
-        <div class="modal-header">
-            <i class="fas fa-download"></i>
-            <div class="modal-title">数据下载确认</div>
+        <span class="close">&times;</span>
+        <h2 class="form-title">创建新账户</h2>
+
+        <div class="input-group">
+            <label for="reg-name">用户名</label>
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" id="reg-name" placeholder="请输入您的用户名">
+            <div class="input-error" id="name-error">用户名至少需要3个字符</div>
         </div>
-        <div class="modal-body" id="modalMessage">
-            是否将当前数据下载到桌面？
+
+        <div class="input-group">
+            <label for="reg-password">密码</label>
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" id="reg-password" placeholder="创建密码（至少8位）">
+            <div class="input-error" id="password-error">密码至少需要8个字符</div>
         </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" id="cancelBtn">取消</button>
-            <button class="btn btn-primary" id="confirmBtn">确定</button>
+
+        <div class="input-group">
+            <label for="reg-confirm">确认密码</label>
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" id="reg-confirm" placeholder="再次输入密码">
+            <div class="input-error" id="confirm-error">两次输入的密码不一致</div>
+        </div>
+
+
+        <div class="remember-me">
+            <input type="checkbox" id="agree">
+            <label for="agree">我同意服务条款和隐私政策</label>
+            <div class="input-error" id="agree-error" style="margin-top: 5px; display: none;">请接受服务条款</div>
+        </div>
+
+        <div class="form-footer" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="alert-btn" id="registerBtn">注 册</button>
+            <button id="showLogin" class="alert-btn" style="background: #95a5a6;">取 消</button>
         </div>
     </div>
 </div>
 
-<!-- 导出数据弹窗 -->
-<div class="modal" id="exportModal">
-    <div class="modal-content">
-        <button class="close-modal">&times;</button>
-        <div class="modal-header">
-            <i class="fas fa-file-export"></i>
-            <div class="modal-title">数据导出确认</div>
-        </div>
-        <div class="modal-body" id="exportModalMessage">
-            是否将选中的数据导出至桌面？
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" id="exportCancelBtn">取消</button>
-            <button class="btn btn-primary" id="exportConfirmBtn">确定</button>
-        </div>
+<!-- 自定义弹窗 -->
+<div class="alert-overlay" id="alertOverlay"></div>
+<div class="custom-alert" id="customAlert">
+    <div class="alert-icon" id="alertIcon">
+        <i class="fas fa-exclamation-circle error-icon"></i>
     </div>
+    <div class="alert-title" id="alertTitle">登录失败</div>
+    <div class="alert-message" id="alertMessage">请输入用户名和密码！</div>
+    <button class="alert-btn" id="alertConfirm">确定</button>
 </div>
-
-<!-- 隐藏的协议链接 -->
-<a id="protocol-link" href="flowshark://"></a>
 
 <script>
-    // 检测是否为IE浏览器
-    function isIE() {
-        return navigator.userAgent.indexOf('MSIE') !== -1 ||
-            navigator.appVersion.indexOf('Trident/') > -1;
-    }
-
-    // 如果是IE浏览器，添加特定类名
-    if (isIE()) {
-        document.body.classList.add('ie-browser');
-        console.log("检测到IE浏览器，已应用特殊样式");
-    }
-
-    // 获取服务器IP地址（模拟）
-    function getServerIP() {
-        // 在实际应用中，这里应该从服务器API获取真实IP
-        // 这里我们模拟生成一个IP地址
-        const ipParts = [];
-        for (let i = 0; i < 4; i++) {
-            ipParts.push(Math.floor(Math.random() * 255) + 1);
-        }
-        return ipParts.join('.');
-    }
-
-    // 格式化日期为YYYY-MM-DDTHH:mm:ss格式
-    function formatDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-
-        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    }
-
-    // 模拟数据
-    const mockData = [
-        { id: 1, startTime: '2025-06-28 10:30:15', endTime: '2025-06-28 10:30:45', imsi: '460001234567890', maisdn: '13800138000' },
-        { id: 2, startTime: '2025-06-28 10:31:22', endTime: '2025-06-28 10:32:05', imsi: '460001234567891', maisdn: '13800138001'},
-        { id: 3, startTime: '2025-06-28 10:32:18', endTime: '2025-06-28 10:33:02', imsi: '460001234567892', maisdn: '13800138002'},
-        { id: 4, startTime: '2025-06-28 10:33:45', endTime: '2025-06-28 10:34:30', imsi: '460001234567893', maisdn: '13800138003'},
-        { id: 5, startTime: '2025-06-28 10:35:12', endTime: '2025-06-28 10:35:58', imsi: '460001234567894', maisdn: '13800138004'},
-        { id: 6, startTime: '2025-06-28 10:36:33', endTime: '2025-06-28 10:37:20', imsi: '460001234567895', maisdn: '13800138005'},
-        { id: 7, startTime: '2025-06-28 10:38:05', endTime: '2025-06-28 10:38:50', imsi: '460001234567896', maisdn: '13800138006'},
-        { id: 8, startTime: '2025-06-28 10:39:22', endTime: '2025-06-28 10:40:10', imsi: '460001234567897', maisdn: '13800138007'},
-        { id: 9, startTime: '2025-06-28 10:40:45', endTime: '2025-06-28 10:41:30', imsi: '460001234567898', maisdn: '13800138008'},
-        { id: 10, startTime: '2025-06-28 10:42:15', endTime: '2025-06-28 10:43:00', imsi: '460001234567899', maisdn: '13800138009'},
-        { id: 11, startTime: '2025-06-28 10:43:40', endTime: '2025-06-28 10:44:25', imsi: '460001234567810', maisdn: '13800138010'},
-        { id: 12, startTime: '2025-06-28 10:45:10', endTime: '2025-06-28 10:45:55', imsi: '460001234567811', maisdn: '13800138011'},
-        { id: 13, startTime: '2025-06-28 10:46:30', endTime: '2025-06-28 10:47:15', imsi: '460001234567812', maisdn: '13800138012'}
+    // 预置用户数据
+    const users = [
+        { username: "admin", password: "123456", role: "管理员" },
     ];
 
-    // 分页配置
-    const pageConfig = {
-        currentPage: 1,
-        pageSize: 5,
-        totalItems: mockData.length,
-        filteredData: [...mockData]
-    };
+    // 显示自定义弹窗
+    function showAlert(title, message, isSuccess = false) {
+        const alertIcon = document.getElementById('alertIcon');
+        const alertBtn = document.getElementById('alertConfirm');
 
-    // DOM元素
-    const elements = {
-        tableBody: document.getElementById('tableBody'),
-        pageInfo: document.getElementById('pageInfo'),
-        prevPage: document.getElementById('prevPage'),
-        nextPage: document.getElementById('nextPage'),
-        pageControls: document.querySelector('.page-controls'),
-        searchBtn: document.getElementById('searchBtn'),
-        resetBtn: document.getElementById('resetBtn'),
-        exportBtn: document.getElementById('exportBtn'),
-        startTime: document.getElementById('startTime'),
-        endTime: document.getElementById('endTime'),
-        mssdn: document.getElementById('mssdn'),
-        imsi: document.getElementById('imsi'),
-        dateDisplay: document.getElementById('currentDate'),
-        protocolLink: document.getElementById('protocol-link'),
-        selectAll: document.getElementById('selectAll'),
-        downloadModal: document.getElementById('downloadModal'),
-        exportModal: document.getElementById('exportModal'),
-        modalMessage: document.getElementById('modalMessage'),
-        exportModalMessage: document.getElementById('exportModalMessage'),
-        serverIp: document.getElementById('serverIp')
-    };
-
-    // 设置时间输入框的值（精确到秒）
-    function setTimeInputs() {
-        const now = new Date();
-        const oneHourAgo = new Date(now.getTime() - 3600000); // 1小时前
-
-        // 设置时间输入框的值（精确到秒）
-        elements.startTime.value = formatDateTime(oneHourAgo);
-        elements.endTime.value = formatDateTime(now);
-    }
-
-    // 初始化页面
-    function initPage() {
-        // 设置当前日期
-        const now = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-        elements.dateDisplay.textContent = now.toLocaleDateString('zh-CN', options);
-
-        // 初始化时间输入框
-        setTimeInputs();
-
-        // 设置服务器IP地址
-        elements.serverIp.textContent = `服务器: ${getServerIP()}`;
-
-        // 渲染表格和分页
-        renderTable();
-        updatePagination();
-
-        // 添加事件监听
-        addEventListeners();
-
-        // 初始化弹窗关闭按钮
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => {
-                elements.downloadModal.style.display = 'none';
-                elements.exportModal.style.display = 'none';
-            });
-        });
-
-        // 初始化弹窗取消按钮
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            elements.downloadModal.style.display = 'none';
-        });
-
-        document.getElementById('exportCancelBtn').addEventListener('click', () => {
-            elements.exportModal.style.display = 'none';
-        });
-    }
-
-    // 渲染表格数据
-    function renderTable() {
-        const { currentPage, pageSize, filteredData } = pageConfig;
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, filteredData.length);
-        const currentData = filteredData.slice(startIndex, endIndex);
-
-        let tableHTML = '';
-
-        currentData.forEach((item, index) => {
-            const rowIndex = startIndex + index + 1;
-
-            tableHTML += `
-                <tr>
-                    <td class="checkbox-container">
-                        <input type="checkbox" class="row-checkbox" data-id="${item.id}">
-                    </td>
-                    <td>${rowIndex}</td>
-                    <td>${item.startTime}</td>
-                    <td>${item.endTime}</td>
-                    <td>${item.imsi}</td>
-                    <td>${item.maisdn}</td>
-                    <td>
-                        <button class="view-btn" data-id="${item.id}">
-                            <i class="fas fa-eye"></i> <span>查看</span>
-                        </button>
-                        <button class="download-btn" data-id="${item.id}">
-                            <i class="fas fa-download"></i> <span>下载</span>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        elements.tableBody.innerHTML = tableHTML || '<tr><td colspan="7" style="text-align:center;">未找到匹配数据</td></tr>';
-
-        // 添加查看按钮事件
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', () => openFlowShark(btn.dataset.id));
-        });
-
-        // 添加下载按钮事件
-        document.querySelectorAll('.download-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                elements.modalMessage.textContent = "是否将当前数据下载到桌面？";
-                elements.downloadModal.style.display = 'flex';
-
-                // 为确定按钮添加一次性事件
-                const confirmBtn = document.getElementById('confirmBtn');
-                const newConfirmBtn = confirmBtn.cloneNode(true);
-                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-                newConfirmBtn.addEventListener('click', function() {
-                    elements.downloadModal.style.display = 'none';
-                    showNotification(`数据 #${btn.dataset.id} 下载中...`, 'success');
-                });
-            });
-        });
-    }
-
-    // 更新分页控件
-    function updatePagination() {
-        const { currentPage, pageSize, totalItems, filteredData } = pageConfig;
-        const totalPages = Math.ceil(filteredData.length / pageSize);
-
-        // 更新分页信息
-        elements.pageInfo.textContent = `共${filteredData.length}条记录，第${currentPage}页`;
-
-        // 清除现有页码按钮（除了上一页和下一页）
-        elements.pageControls.innerHTML = '';
-        elements.pageControls.appendChild(elements.prevPage);
-
-        // 生成页码按钮
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
-
-        for (let i = startPage; i <= endPage; i++) {
-            const pageBtn = document.createElement('button');
-            pageBtn.className = 'page-btn';
-            pageBtn.textContent = i;
-            pageBtn.classList.toggle('active', i === currentPage);
-            pageBtn.addEventListener('click', () => goToPage(i));
-            elements.pageControls.appendChild(pageBtn);
+        if (isSuccess) {
+            alertIcon.innerHTML = '<i class="fas fa-check-circle success-icon"></i>';
+            alertBtn.className = 'alert-btn success-btn';
+        } else {
+            alertIcon.innerHTML = '<i class="fas fa-exclamation-circle error-icon"></i>';
+            alertBtn.className = 'alert-btn';
         }
 
-        elements.pageControls.appendChild(elements.nextPage);
-
-        // 更新按钮状态
-        elements.prevPage.disabled = currentPage === 1;
-        elements.nextPage.disabled = currentPage === totalPages || totalPages === 0;
+        document.getElementById('alertTitle').textContent = title;
+        document.getElementById('alertMessage').textContent = message;
+        document.getElementById('customAlert').style.display = 'block';
+        document.getElementById('alertOverlay').style.display = 'block';
     }
 
-    // 跳转到指定页
-    function goToPage(page) {
-        pageConfig.currentPage = page;
-        renderTable();
-        updatePagination();
+    // 隐藏自定义弹窗
+    function hideAlert() {
+        document.getElementById('customAlert').style.display = 'none';
+        document.getElementById('alertOverlay').style.display = 'none';
     }
 
-    // 打开FlowShark应用
-    function openFlowShark(id) {
-        const data = mockData.find(item => item.id == id);
-        if (!data) return;
+    // 显示注册模态框
+    document.getElementById('showRegister').addEventListener('click', function() {
+        document.getElementById('registerModal').style.display = 'block';
+    });
 
-        // 设置协议链接并模拟点击
-        elements.protocolLink.href = `flowshark://${id}`;
-        elements.protocolLink.click();
+    // 关闭按钮
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('registerModal').style.display = 'none';
+    });
 
-        // 显示用户反馈
-        showNotification(`正在启动FlowShark分析信令数据 #${id}...`, 'success');
-    }
+    // 点击模态框外部关闭
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('registerModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
 
-    // 显示通知
-    function showNotification(message, type) {
-        // 在实际应用中，这里可以使用Toast通知库
-        alert(`${type === 'success' ? '✓' : '⚠'} ${message}`);
-    }
+        const overlay = document.getElementById('alertOverlay');
+        if (event.target === overlay) {
+            hideAlert();
+        }
+    });
 
-    // 添加事件监听
-    function addEventListeners() {
-        // 分页按钮
-        elements.prevPage.addEventListener('click', () => {
-            if (pageConfig.currentPage > 1) {
-                goToPage(pageConfig.currentPage - 1);
-            }
-        });
+    // 弹窗确认按钮
+    document.getElementById('alertConfirm').addEventListener('click', hideAlert);
 
-        elements.nextPage.addEventListener('click', () => {
-            const totalPages = Math.ceil(pageConfig.filteredData.length / pageConfig.pageSize);
-            if (pageConfig.currentPage < totalPages) {
-                goToPage(pageConfig.currentPage + 1);
-            }
-        });
+    // 登录按钮事件
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginBtn = document.getElementById('loginBtn');
+        const originalText = loginBtn.textContent;
 
-        // 搜索按钮
-        elements.searchBtn.addEventListener('click', searchData);
+        // 验证输入
+        if(!username || !password) {
+            showAlert('输入错误', '请输入用户名和密码！');
+            return;
+        }
 
-        // 重置按钮
-        elements.resetBtn.addEventListener('click', resetForm);
+        // 模拟登录过程
+        loginBtn.textContent = '登录中...';
+        loginBtn.disabled = true;
 
-        // 导出按钮
-        elements.exportBtn.addEventListener('click', () => {
-            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-            const totalRows = document.querySelectorAll('.row-checkbox').length;
+        setTimeout(() => {
+            // 检查用户凭据
+            const user = users.find(u => u.username === username && u.password === password);
 
-            if (selectedCheckboxes.length === 0) {
-                elements.exportModalMessage.textContent = "是否将全部数据导出至桌面？";
+            if(user) {
+                // 登录成功
+                loginBtn.textContent = '登录成功！';
+                loginBtn.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+
+                setTimeout(() => {
+                    // 跳转到系统页面（模拟）
+                    window.location.href = 'test.html';
+                }, 1000);
             } else {
-                elements.exportModalMessage.textContent = `是否将选中的${selectedCheckboxes.length}条数据导出至桌面？`;
+                // 登录失败
+                loginBtn.textContent = originalText;
+                loginBtn.disabled = false;
+                showAlert('登录失败', '用户名或密码错误！请检查您的输入。');
             }
+        }, 1000);
+    });
 
-            elements.exportModal.style.display = 'flex';
-
-            // 为确定按钮添加一次性事件
-            const exportConfirmBtn = document.getElementById('exportConfirmBtn');
-            const newExportConfirmBtn = exportConfirmBtn.cloneNode(true);
-            exportConfirmBtn.parentNode.replaceChild(newExportConfirmBtn, exportConfirmBtn);
-
-            newExportConfirmBtn.addEventListener('click', function() {
-                elements.exportModal.style.display = 'none';
-                const count = selectedCheckboxes.length || totalRows;
-                showNotification(`正在导出${count}条数据...`, 'success');
-            });
+    // 注册表单校验函数
+    function validateRegistration() {
+        // 重置所有错误状态
+        document.querySelectorAll('.input-group').forEach(group => {
+            group.classList.remove('error');
         });
+        document.getElementById('agree-error').style.display = 'none';
 
-        // 侧边栏折叠功能
-        document.querySelector('.toggle-sidebar').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
+        const name = document.getElementById('reg-name').value;
+        const password = document.getElementById('reg-password').value;
+        const confirm = document.getElementById('reg-confirm').value;
+        const agree = document.getElementById('agree').checked;
 
-        // 菜单项点击效果
-        const menuItems = document.querySelectorAll('.menu-item');
-        menuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (this.getAttribute('href') === '#') {
-                    e.preventDefault();
-                    menuItems.forEach(item => item.classList.remove('active'));
-                    this.classList.add('active');
-                }
-            });
-        });
+        let isValid = true;
 
-        document.getElementById('systemManagement').addEventListener('click', function() {
-            const submenu = this.nextElementSibling;
-            submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // 确保子菜单默认显示
-        document.querySelector('.submenu').style.display = 'block';
-
-        // 全选功能
-        elements.selectAll.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.row-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-        });
-    }
-
-    // 搜索数据
-    function searchData() {
-        const startTime = elements.startTime.value;
-        const endTime = elements.endTime.value;
-        const mssdn = elements.mssdn.value.trim();
-        const imsi = elements.imsi.value.trim();
-
-        // 转换时间格式为可比较的格式 (YYYY-MM-DD HH:mm:ss)
-        const startTimeVal = startTime ? startTime.replace('T', ' ') + ':00' : null;
-        const endTimeVal = endTime ? endTime.replace('T', ' ') + ':00' : null;
-
-        // 过滤数据
-        pageConfig.filteredData = mockData.filter(item => {
-            let match = true;
-
-            // 时间范围过滤
-            if (startTimeVal && endTimeVal) {
-                // 同时有开始和结束时间 - 区间查询
-                match = match && (item.startTime >= startTimeVal && item.endTime <= endTimeVal);
-            } else if (startTimeVal) {
-                // 只有开始时间 - 查询开始时间之后的数据
-                match = match && (item.startTime >= startTimeVal);
-            } else if (endTimeVal) {
-                // 只有结束时间 - 查询结束时间之前的数据
-                match = match && (item.endTime <= endTimeVal);
-            }
-
-            // MSSDN过滤 - 如果输入则匹配包含关系
-            if (mssdn) {
-                match = match && item.maisdn.includes(mssdn);
-            }
-
-            // SUPI过滤 - 如果输入则匹配包含关系
-            if (imsi) {
-                match = match && item.imsi.includes(imsi);
-            }
-
-            return match;
-        });
-
-        pageConfig.currentPage = 1;
-        renderTable();
-        updatePagination();
-
-        showNotification(`找到${pageConfig.filteredData.length}条匹配记录`, 'success');
-    }
-
-    // 重置表单
-    function resetForm() {
-        // 清空文本输入框
-        elements.mssdn.value = '';
-        elements.imsi.value = '';
-
-        // 重置时间为当前时间
-        setTimeInputs();
-
-        // IE浏览器特殊处理 - 强制触发input事件
-        if (isIE()) {
-            const event = document.createEvent('Event');
-            event.initEvent('input', true, true);
-            elements.startTime.dispatchEvent(event);
-            elements.endTime.dispatchEvent(event);
+        // 验证用户名
+        // console.log(name.length);
+        if (!name || name.length < 3) {
+            document.getElementById('name-error').textContent = '用户名至少需要3个字符';
+            document.querySelectorAll('.input-group')[0].classList.add('error');
+            isValid = false;
         }
 
-        // 重置数据
-        pageConfig.filteredData = [...mockData];
-        pageConfig.currentPage = 1;
-        renderTable();
-        updatePagination();
+        // 验证密码
+        if (!password || password.length < 8) {
+            document.getElementById('password-error').textContent = '密码至少需要8个字符';
+            document.querySelectorAll('.input-group')[1].classList.add('error');
+            isValid = false;
+        }
 
-        showNotification('查询条件已重置', 'success');
+        // 验证确认密码
+        if (!confirm || password !== confirm) {
+            document.getElementById('confirm-error').textContent = '两次输入的密码不一致';
+            document.querySelectorAll('.input-group')[2].classList.add('error');
+            isValid = false;
+        }
+
+        // 验证条款同意
+        if (!agree) {
+            document.getElementById('agree-error').style.display = 'block';
+            isValid = false;
+        }
+
+        return isValid;
     }
 
-    // 初始化页面
-    window.addEventListener('DOMContentLoaded', initPage);
+    // 注册按钮事件
+    document.getElementById('registerBtn').addEventListener('click', function() {
+        // 执行完整的校验
+        const isValid = validateRegistration();
+
+        // 如果验证通过
+        if (isValid) {
+            const name = document.getElementById('reg-name').value;
+            const password = document.getElementById('reg-password').value;
+
+            // 模拟注册成功
+            showAlert('注册成功', '您的账户已成功创建！', true);
+
+            // 添加新用户到用户列表
+            users.push({
+                username: name,
+                password: password,
+                role: "普通用户"
+            });
+
+            // 清空注册表单
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-password').value = '';
+            document.getElementById('reg-confirm').value = '';
+            document.getElementById('agree').checked = false;
+
+            // 关闭注册模态框
+            setTimeout(() => {
+                document.getElementById('registerModal').style.display = 'none';
+                hideAlert();
+            }, 2000);
+        }
+    });
+
+    // 实时输入校验
+    document.getElementById('reg-name').addEventListener('input', function() {
+        const name = this.value;
+        if (name.length >= 3) {
+            document.querySelectorAll('.input-group')[0].classList.remove('error');
+        }
+    });
+
+    document.getElementById('reg-password').addEventListener('input', function() {
+        const password = this.value;
+        if (password.length >= 8) {
+            document.querySelectorAll('.input-group')[1].classList.remove('error');
+        }
+    });
+
+    document.getElementById('reg-confirm').addEventListener('input', function() {
+        const password = document.getElementById('reg-password').value;
+        const confirm = this.value;
+        if (confirm === password && password !== '') {
+            document.querySelectorAll('.input-group')[2].classList.remove('error');
+        }
+    });
+
+    document.getElementById('agree').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('agree-error').style.display = 'none';
+        }
+    });
+
+    // 确定按钮事件（关闭注册弹框）
+    document.getElementById('showLogin').addEventListener('click', function() {
+        document.getElementById('registerModal').style.display = 'none';
+    });
+
+    // 按Enter键登录
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('loginBtn').click();
+        }
+    });
 </script>
 </body>
 </html>
