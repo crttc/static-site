@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信令管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        :root {
+            --primary: #2c6bed;
+            --primary-dark: #1a56c7;
+            --secondary: #f8f9fa;
+            --border: #dee2e6;
+            --text: #333;
+            --text-light: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --flow-chart-bg: #f0f7ff;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0 20px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info .notification {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .notification:hover {
+            transform: translateY(-2px);
+        }
+
+        .notification .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #3a7dff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .server-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+        }
+
+        .server-ip {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .server-status {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4caf50;
+            margin-right: 5px;
+            box-shadow: 0 0 8px #4caf50;
+        }
+
+        /* 主内容区 */
+        .container {
+            display: flex;
+            flex: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(to bottom, #2a6bdb, #1a56c7);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .toggle-sidebar {
+            padding: 20px 15px;
+            text-align: right;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .toggle-sidebar i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.4s;
+        }
+
+        .menu-item:hover:before {
+            left: 0;
+        }
+
+        .menu-item:hover {
+            color: white;
+        }
+
+        .menu-item.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left: 4px solid white;
+        }
+
+        .menu-item i {
+            font-size: 20px;
+            min-width: 24px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .menu-item span {
+            flex: 1;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .sidebar.collapsed .menu-item span {
+            display: none;
+        }
+
+        .footer {
+            padding: 20px 15px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* 内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breadcrumb i {
+            color: var(--primary);
+        }
+
+        .date-display {
+            color: var(--text-light);
+            font-size: 15px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* 查询表单 */
+        .query-form {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(44, 107, 237, 0.1);
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-title i {
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #fafcff;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 107, 237, 0.15);
+            outline: none;
+        }
+
+        .form-group input[type="datetime-local"] {
+            color: var(--text-light);
+        }
+
+        .form-group input[type="datetime-local"]:not(:focus):placeholder-shown {
+            color: var(--text-light);
+        }
+
+        .form-group input[type="datetime-local"]:focus,
+        .form-group input[type="datetime-local"]:not(:placeholder-shown) {
+            color: var(--text);
+        }
+
+        .time-range-hint {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 10px rgba(44, 107, 237, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(44, 107, 237, 0.4);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* 数据表格 */
+        .data-table {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(44, 107, 237, 0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: #f8fafd;
+            z-index: 10;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 700;
+            color: var(--text-light);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fbfe;
+        }
+
+        /* 按钮样式优化 */
+        .view-btn {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
+            height: 30px;
+            min-width: 90px;
+        }
+
+        .view-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+            background: linear-gradient(135deg, #138496, #117a8b);
+        }
+
+        .download-btn {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+            height: 30px;
+            min-width: 90px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            background: linear-gradient(135deg, #218838, #1e7e34);
+        }
+
+        /* 分页 */
+        .pagination {
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .page-info {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .page-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(44, 107, 237, 0.3);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .stats {
+                flex-wrap: wrap;
+            }
+            .stat-card {
+                min-width: calc(50% - 12px);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .menu-item span {
+                display: none;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+            .stat-card {
+                min-width: 100%;
+            }
+
+            .server-info {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .form-group {
+                min-width: 100%;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .page-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .view-btn, .download-btn {
+                padding: 5px 8px;
+                font-size: 11px;
+                min-width: 80px;
+                height: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .view-btn, .download-btn {
+                min-width: auto;
+                width: 70px;
+            }
+
+            .view-btn span, .download-btn span {
+                display: none;
+            }
+
+            .view-btn i, .download-btn i {
+                font-size: 14px;
+                margin-right: 0;
+            }
+        }
+
+        /* IE浏览器调整 */
+        .ie-browser td:nth-child(2) {
+            padding-left: 10px !important;
+        }
+
+        .ie-browser table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .ie-browser th,
+        .ie-browser td {
+            padding: 12px 15px;
+        }
+
+        .ie-browser th:first-child,
+        .ie-browser td:first-child {
+            width: 60px;
+        }
+
+        .ie-browser th:nth-child(2),
+        .ie-browser td:nth-child(2) {
+            width: 120px;
+        }
+
+        .ie-browser .view-btn,
+        .ie-browser .download-btn {
+            margin-left: -5px;
+        }
+
+        /* IE检测类 */
+        .ie-browser .form-group input[type="datetime-local"] {
+            color: var(--text-light) !important;
+        }
+
+        .ie-browser .form-group input[type="datetime-local"]:focus {
+            color: var(--text) !important;
+        }
+
+        /* 复选框样式 */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalShow 0.3s ease;
+        }
+
+        @keyframes modalShow {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header i {
+            font-size: 24px;
+            color: var(--primary);
+            margin-right: 12px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .modal-actions .btn {
+            min-width: 90px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<header class="header">
+    <div class="logo">
+        <i class="fas fa-signal"></i>
+        <h1>接口监测系统</h1>
+    </div>
+    <div class="user-info">
+        <div class="notification">
+            <i class="fas fa-bell"></i>
+            <span class="badge">3</span>
+        </div>
+        <div class="server-info">
+            <div class="server-ip" id="serverIp">服务器: 192.168.1.100</div>
+            <div class="server-status">
+                <span class="status-indicator"></span>
+                <span>在线</span>
+            </div>
+        </div>
+        <div class="user-profile">
+            <div class="avatar">AD</div>
+            <span>管理员</span>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="toggle-sidebar">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="menu">
+            <a href="#" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-search"></i>
+                <span>信令查询</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>数据统计</span>
+            </a>
+            <div class="menu-item" id="systemManagement">
+                <i class="fas fa-cog"></i>
+                <span>系统管理</span>
+            </div>
+
+            <!-- 系统管理下的二级菜单 -->
+            <div class="submenu" style="padding-left: 30px;">
+                <a href="usermanagement.html" class="menu-item" data-target="userManagementContent">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </a>
+                <a href="position.html" class="menu-item" data-target="jobManagementContent">
+                    <i class="fas fa-briefcase"></i>
+                    <span>岗位管理</span>
+                </a>
+                <a href="log.html" class="menu-item" data-target="logContent">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>日志管理</span>
+                </a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2025 接口监测系统</p>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="content-header">
+            <div class="breadcrumb">
+                <i class="fas fa-project-diagram"></i>
+                信令查询
+            </div>
+            <div class="date-display" id="currentDate">2025年6月27日 星期五</div>
+        </div>
+
+        <!-- 查询表单 -->
+        <div class="query-form">
+            <div class="form-title">
+                <i class="fas fa-filter"></i>
+                <span>信令查询条件</span>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> 起始时间</label>
+                    <input type="datetime-local" id="startTime" step="1">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-clock"></i> 结束时间</label>
+                    <input type="datetime-local" id="endTime" step="1">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-mobile-alt"></i> MSSDN</label>
+                    <input type="text" id="mssdn" placeholder="请输入MSSDN">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-sim-card"></i> SUPI</label>
+                    <input type="text" id="imsi" placeholder="请输入SUPI">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="resetBtn">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+                <button class="btn btn-primary" id="searchBtn">
+                    <i class="fas fa-search"></i> 查询
+                </button>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="data-table">
+            <div class="table-header">
+                <div class="table-title">信令数据列表</div>
+                <div class="table-actions">
+                    <button class="btn btn-primary" id="exportBtn">
+                        <i class="fas fa-download"></i> 导出数据
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="selectAll">
+                        </div>
+                    </th>
+                    <th>序号</th>
+                    <th>startTime</th>
+                    <th>endTime</th>
+                    <th>SUPI</th>
+                    <th>maisdn</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody">
+                <!-- 表格数据将通过JS动态生成 -->
+                </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                <div class="page-info" id="pageInfo">共0条记录</div>
+                <div class="page-controls">
+                    <button class="page-btn" id="prevPage">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <!-- 页码按钮将通过JS动态生成 -->
+                    <button class="page-btn" id="nextPage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal" id="downloadModal">
+    <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <div class="modal-header">
+            <i class="fas fa-download"></i>
+            <div class="modal-title">数据下载确认</div>
+        </div>
+        <div class="modal-body" id="modalMessage">
+            是否将当前数据下载到桌面？
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="cancelBtn">取消</button>
+            <button class="btn btn-primary" id="confirmBtn">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 导出数据弹窗 -->
+<div class="modal" id="exportModal">
+    <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <div class="modal-header">
+            <i class="fas fa-file-export"></i>
+            <div class="modal-title">数据导出确认</div>
+        </div>
+        <div class="modal-body" id="exportModalMessage">
+            是否将选中的数据导出至桌面？
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="exportCancelBtn">取消</button>
+            <button class="btn btn-primary" id="exportConfirmBtn">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏的协议链接 -->
+<a id="protocol-link" href="flowshark://"></a>
+
+<script>
+    // 检测是否为IE浏览器
+    function isIE() {
+        return navigator.userAgent.indexOf('MSIE') !== -1 ||
+            navigator.appVersion.indexOf('Trident/') > -1;
+    }
+
+    // 如果是IE浏览器，添加特定类名
+    if (isIE()) {
+        document.body.classList.add('ie-browser');
+        console.log("检测到IE浏览器，已应用特殊样式");
+    }
+
+    // 获取服务器IP地址（模拟）
+    function getServerIP() {
+        // 在实际应用中，这里应该从服务器API获取真实IP
+        // 这里我们模拟生成一个IP地址
+        const ipParts = [];
+        for (let i = 0; i < 4; i++) {
+            ipParts.push(Math.floor(Math.random() * 255) + 1);
+        }
+        return ipParts.join('.');
+    }
+
+    // 格式化日期为YYYY-MM-DDTHH:mm:ss格式
+    function formatDateTime(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    }
+
+    // 模拟数据
+    const mockData = [
+        { id: 1, startTime: '2025-06-28 10:30:15', endTime: '2025-06-28 10:30:45', imsi: '460001234567890', maisdn: '13800138000' },
+        { id: 2, startTime: '2025-06-28 10:31:22', endTime: '2025-06-28 10:32:05', imsi: '460001234567891', maisdn: '13800138001'},
+        { id: 3, startTime: '2025-06-28 10:32:18', endTime: '2025-06-28 10:33:02', imsi: '460001234567892', maisdn: '13800138002'},
+        { id: 4, startTime: '2025-06-28 10:33:45', endTime: '2025-06-28 10:34:30', imsi: '460001234567893', maisdn: '13800138003'},
+        { id: 5, startTime: '2025-06-28 10:35:12', endTime: '2025-06-28 10:35:58', imsi: '460001234567894', maisdn: '13800138004'},
+        { id: 6, startTime: '2025-06-28 10:36:33', endTime: '2025-06-28 10:37:20', imsi: '460001234567895', maisdn: '13800138005'},
+        { id: 7, startTime: '2025-06-28 10:38:05', endTime: '2025-06-28 10:38:50', imsi: '460001234567896', maisdn: '13800138006'},
+        { id: 8, startTime: '2025-06-28 10:39:22', endTime: '2025-06-28 10:40:10', imsi: '460001234567897', maisdn: '13800138007'},
+        { id: 9, startTime: '2025-06-28 10:40:45', endTime: '2025-06-28 10:41:30', imsi: '460001234567898', maisdn: '13800138008'},
+        { id: 10, startTime: '2025-06-28 10:42:15', endTime: '2025-06-28 10:43:00', imsi: '460001234567899', maisdn: '13800138009'},
+        { id: 11, startTime: '2025-06-28 10:43:40', endTime: '2025-06-28 10:44:25', imsi: '460001234567810', maisdn: '13800138010'},
+        { id: 12, startTime: '2025-06-28 10:45:10', endTime: '2025-06-28 10:45:55', imsi: '460001234567811', maisdn: '13800138011'},
+        { id: 13, startTime: '2025-06-28 10:46:30', endTime: '2025-06-28 10:47:15', imsi: '460001234567812', maisdn: '13800138012'}
+    ];
+
+    // 分页配置
+    const pageConfig = {
+        currentPage: 1,
+        pageSize: 5,
+        totalItems: mockData.length,
+        filteredData: [...mockData]
+    };
+
+    // DOM元素
+    const elements = {
+        tableBody: document.getElementById('tableBody'),
+        pageInfo: document.getElementById('pageInfo'),
+        prevPage: document.getElementById('prevPage'),
+        nextPage: document.getElementById('nextPage'),
+        pageControls: document.querySelector('.page-controls'),
+        searchBtn: document.getElementById('searchBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        exportBtn: document.getElementById('exportBtn'),
+        startTime: document.getElementById('startTime'),
+        endTime: document.getElementById('endTime'),
+        mssdn: document.getElementById('mssdn'),
+        imsi: document.getElementById('imsi'),
+        dateDisplay: document.getElementById('currentDate'),
+        protocolLink: document.getElementById('protocol-link'),
+        selectAll: document.getElementById('selectAll'),
+        downloadModal: document.getElementById('downloadModal'),
+        exportModal: document.getElementById('exportModal'),
+        modalMessage: document.getElementById('modalMessage'),
+        exportModalMessage: document.getElementById('exportModalMessage'),
+        serverIp: document.getElementById('serverIp')
+    };
+
+    // 设置时间输入框的值（精确到秒）
+    function setTimeInputs() {
+        const now = new Date();
+        const oneHourAgo = new Date(now.getTime() - 3600000); // 1小时前
+
+        // 设置时间输入框的值（精确到秒）
+        elements.startTime.value = formatDateTime(oneHourAgo);
+        elements.endTime.value = formatDateTime(now);
+    }
+
+    // 初始化页面
+    function initPage() {
+        // 设置当前日期
+        const now = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        elements.dateDisplay.textContent = now.toLocaleDateString('zh-CN', options);
+
+        // 初始化时间输入框
+        setTimeInputs();
+
+        // 设置服务器IP地址
+        elements.serverIp.textContent = `服务器: ${getServerIP()}`;
+
+        // 渲染表格和分页
+        renderTable();
+        updatePagination();
+
+        // 添加事件监听
+        addEventListeners();
+
+        // 初始化弹窗关闭按钮
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                elements.downloadModal.style.display = 'none';
+                elements.exportModal.style.display = 'none';
+            });
+        });
+
+        // 初始化弹窗取消按钮
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            elements.downloadModal.style.display = 'none';
+        });
+
+        document.getElementById('exportCancelBtn').addEventListener('click', () => {
+            elements.exportModal.style.display = 'none';
+        });
+    }
+
+    // 渲染表格数据
+    function renderTable() {
+        const { currentPage, pageSize, filteredData } = pageConfig;
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+        const currentData = filteredData.slice(startIndex, endIndex);
+
+        let tableHTML = '';
+
+        currentData.forEach((item, index) => {
+            const rowIndex = startIndex + index + 1;
+
+            tableHTML += `
+                <tr>
+                    <td class="checkbox-container">
+                        <input type="checkbox" class="row-checkbox" data-id="${item.id}">
+                    </td>
+                    <td>${rowIndex}</td>
+                    <td>${item.startTime}</td>
+                    <td>${item.endTime}</td>
+                    <td>${item.imsi}</td>
+                    <td>${item.maisdn}</td>
+                    <td>
+                        <button class="view-btn" data-id="${item.id}">
+                            <i class="fas fa-eye"></i> <span>查看</span>
+                        </button>
+                        <button class="download-btn" data-id="${item.id}">
+                            <i class="fas fa-download"></i> <span>下载</span>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        elements.tableBody.innerHTML = tableHTML || '<tr><td colspan="7" style="text-align:center;">未找到匹配数据</td></tr>';
+
+        // 添加查看按钮事件
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => openFlowShark(btn.dataset.id));
+        });
+
+        // 添加下载按钮事件
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                elements.modalMessage.textContent = "是否将当前数据下载到桌面？";
+                elements.downloadModal.style.display = 'flex';
+
+                // 为确定按钮添加一次性事件
+                const confirmBtn = document.getElementById('confirmBtn');
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                newConfirmBtn.addEventListener('click', function() {
+                    elements.downloadModal.style.display = 'none';
+                    showNotification(`数据 #${btn.dataset.id} 下载中...`, 'success');
+                });
+            });
+        });
+    }
+
+    // 更新分页控件
+    function updatePagination() {
+        const { currentPage, pageSize, totalItems, filteredData } = pageConfig;
+        const totalPages = Math.ceil(filteredData.length / pageSize);
+
+        // 更新分页信息
+        elements.pageInfo.textContent = `共${filteredData.length}条记录，第${currentPage}页`;
+
+        // 清除现有页码按钮（除了上一页和下一页）
+        elements.pageControls.innerHTML = '';
+        elements.pageControls.appendChild(elements.prevPage);
+
+        // 生成页码按钮
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = 'page-btn';
+            pageBtn.textContent = i;
+            pageBtn.classList.toggle('active', i === currentPage);
+            pageBtn.addEventListener('click', () => goToPage(i));
+            elements.pageControls.appendChild(pageBtn);
+        }
+
+        elements.pageControls.appendChild(elements.nextPage);
+
+        // 更新按钮状态
+        elements.prevPage.disabled = currentPage === 1;
+        elements.nextPage.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    // 跳转到指定页
+    function goToPage(page) {
+        pageConfig.currentPage = page;
+        renderTable();
+        updatePagination();
+    }
+
+    // 打开FlowShark应用
+    function openFlowShark(id) {
+        const data = mockData.find(item => item.id == id);
+        if (!data) return;
+
+        // 设置协议链接并模拟点击
+        elements.protocolLink.href = `flowshark://${id}`;
+        elements.protocolLink.click();
+
+        // 显示用户反馈
+        showNotification(`正在启动FlowShark分析信令数据 #${id}...`, 'success');
+    }
+
+    // 显示通知
+    function showNotification(message, type) {
+        // 在实际应用中，这里可以使用Toast通知库
+        alert(`${type === 'success' ? '✓' : '⚠'} ${message}`);
+    }
+
+    // 添加事件监听
+    function addEventListeners() {
+        // 分页按钮
+        elements.prevPage.addEventListener('click', () => {
+            if (pageConfig.currentPage > 1) {
+                goToPage(pageConfig.currentPage - 1);
+            }
+        });
+
+        elements.nextPage.addEventListener('click', () => {
+            const totalPages = Math.ceil(pageConfig.filteredData.length / pageConfig.pageSize);
+            if (pageConfig.currentPage < totalPages) {
+                goToPage(pageConfig.currentPage + 1);
+            }
+        });
+
+        // 搜索按钮
+        elements.searchBtn.addEventListener('click', searchData);
+
+        // 重置按钮
+        elements.resetBtn.addEventListener('click', resetForm);
+
+        // 导出按钮
+        elements.exportBtn.addEventListener('click', () => {
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            const totalRows = document.querySelectorAll('.row-checkbox').length;
+
+            if (selectedCheckboxes.length === 0) {
+                elements.exportModalMessage.textContent = "是否将全部数据导出至桌面？";
+            } else {
+                elements.exportModalMessage.textContent = `是否将选中的${selectedCheckboxes.length}条数据导出至桌面？`;
+            }
+
+            elements.exportModal.style.display = 'flex';
+
+            // 为确定按钮添加一次性事件
+            const exportConfirmBtn = document.getElementById('exportConfirmBtn');
+            const newExportConfirmBtn = exportConfirmBtn.cloneNode(true);
+            exportConfirmBtn.parentNode.replaceChild(newExportConfirmBtn, exportConfirmBtn);
+
+            newExportConfirmBtn.addEventListener('click', function() {
+                elements.exportModal.style.display = 'none';
+                const count = selectedCheckboxes.length || totalRows;
+                showNotification(`正在导出${count}条数据...`, 'success');
+            });
+        });
+
+        // 侧边栏折叠功能
+        document.querySelector('.toggle-sidebar').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        });
+
+        // 菜单项点击效果
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                    menuItems.forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        document.getElementById('systemManagement').addEventListener('click', function() {
+            const submenu = this.nextElementSibling;
+            submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 确保子菜单默认显示
+        document.querySelector('.submenu').style.display = 'block';
+
+        // 全选功能
+        elements.selectAll.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+
+    // 搜索数据
+    function searchData() {
+        const startTime = elements.startTime.value;
+        const endTime = elements.endTime.value;
+        const mssdn = elements.mssdn.value.trim();
+        const imsi = elements.imsi.value.trim();
+
+        // 转换时间格式为可比较的格式 (YYYY-MM-DD HH:mm:ss)
+        const startTimeVal = startTime ? startTime.replace('T', ' ') + ':00' : null;
+        const endTimeVal = endTime ? endTime.replace('T', ' ') + ':00' : null;
+
+        // 过滤数据
+        pageConfig.filteredData = mockData.filter(item => {
+            let match = true;
+
+            // 时间范围过滤
+            if (startTimeVal && endTimeVal) {
+                // 同时有开始和结束时间 - 区间查询
+                match = match && (item.startTime >= startTimeVal && item.endTime <= endTimeVal);
+            } else if (startTimeVal) {
+                // 只有开始时间 - 查询开始时间之后的数据
+                match = match && (item.startTime >= startTimeVal);
+            } else if (endTimeVal) {
+                // 只有结束时间 - 查询结束时间之前的数据
+                match = match && (item.endTime <= endTimeVal);
+            }
+
+            // MSSDN过滤 - 如果输入则匹配包含关系
+            if (mssdn) {
+                match = match && item.maisdn.includes(mssdn);
+            }
+
+            // SUPI过滤 - 如果输入则匹配包含关系
+            if (imsi) {
+                match = match && item.imsi.includes(imsi);
+            }
+
+            return match;
+        });
+
+        pageConfig.currentPage = 1;
+        renderTable();
+        updatePagination();
+
+        showNotification(`找到${pageConfig.filteredData.length}条匹配记录`, 'success');
+    }
+
+    // 重置表单
+    function resetForm() {
+        // 清空文本输入框
+        elements.mssdn.value = '';
+        elements.imsi.value = '';
+
+        // 重置时间为当前时间
+        setTimeInputs();
+
+        // IE浏览器特殊处理 - 强制触发input事件
+        if (isIE()) {
+            const event = document.createEvent('Event');
+            event.initEvent('input', true, true);
+            elements.startTime.dispatchEvent(event);
+            elements.endTime.dispatchEvent(event);
+        }
+
+        // 重置数据
+        pageConfig.filteredData = [...mockData];
+        pageConfig.currentPage = 1;
+        renderTable();
+        updatePagination();
+
+        showNotification('查询条件已重置', 'success');
+    }
+
+    // 初始化页面
+    window.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>
